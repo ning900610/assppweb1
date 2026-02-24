@@ -20,19 +20,25 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-         # 1. 把映像檔從 GitHub 下載下來
+          # 1. 從 GitHub 下載最新版映像檔
           docker pull ghcr.io/lakr233/assppweb:latest
           
-          # 2. 撕掉舊包裝，貼上乾淨的本地標籤
-          docker tag ghcr.io/lakr233/assppweb:latest assppweb:latest
+          # 2. 撕掉舊包裝，換成 Cloudflare 規定的具體版本號 (我們用 v1)
+          docker tag ghcr.io/lakr233/assppweb:latest assppweb:v1
           
-          # 3. 成功推送到 Cloudflare 內部倉庫
-          npx wrangler containers push assppweb:latest
+          # 3. 把 v1 版本推送到 Cloudflare 內部倉庫
+          npx wrangler containers push assppweb:v1
           
-          # 4. 把設定檔替換成「完整的 Cloudflare 內部金庫網址」
-          sed -i "s|ghcr.io/lakr233/assppweb|registry.cloudflare.com/$CLOUDFLARE_ACCOUNT_ID/assppweb|g" wrangler.toml || true
-          sed -i "s|ghcr.io/lakr233/assppweb|registry.cloudflare.com/$CLOUDFLARE_ACCOUNT_ID/assppweb|g" wrangler.json || true
-          sed -i "s|ghcr.io/lakr233/assppweb|registry.cloudflare.com/$CLOUDFLARE_ACCOUNT_ID/assppweb|g" wrangler.jsonc || true
+          # 4. 替換設定檔網址
+          # 先處理有標註 :latest 的情況，換成 :v1
+          sed -i "s|ghcr.io/lakr233/assppweb:latest|registry.cloudflare.com/$CLOUDFLARE_ACCOUNT_ID/assppweb:v1|g" wrangler.toml || true
+          sed -i "s|ghcr.io/lakr233/assppweb:latest|registry.cloudflare.com/$CLOUDFLARE_ACCOUNT_ID/assppweb:v1|g" wrangler.json || true
+          sed -i "s|ghcr.io/lakr233/assppweb:latest|registry.cloudflare.com/$CLOUDFLARE_ACCOUNT_ID/assppweb:v1|g" wrangler.jsonc || true
+          
+          # 再處理沒有標註標籤的情況，一樣加上 :v1
+          sed -i "s|ghcr.io/lakr233/assppweb|registry.cloudflare.com/$CLOUDFLARE_ACCOUNT_ID/assppweb:v1|g" wrangler.toml || true
+          sed -i "s|ghcr.io/lakr233/assppweb|registry.cloudflare.com/$CLOUDFLARE_ACCOUNT_ID/assppweb:v1|g" wrangler.json || true
+          sed -i "s|ghcr.io/lakr233/assppweb|registry.cloudflare.com/$CLOUDFLARE_ACCOUNT_ID/assppweb:v1|g" wrangler.jsonc || true
           
           # 5. 執行最終部署
           npx wrangler deploy
