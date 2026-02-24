@@ -19,4 +19,12 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler deploy
+        run: |
+          # 第一步：叫 GitHub 把映像檔下載到本地
+          docker pull ghcr.io/lakr233/assppweb:latest
+          
+          # 第二步：把下載好的映像檔，強制推送到你的 Cloudflare 內部倉庫
+          npx wrangler containers push ghcr.io/lakr233/assppweb:latest
+          
+          # 第三步：執行最終部署
+          npx wrangler deploy
